@@ -48,9 +48,9 @@
    $next_pc[31:0] = $reset ? 8'd0 : $pc + 8'd4;
 
    // IMem
-   `READONLY_MEM($pc, $$instr[31:0])
+   `READONLY_MEM($pc, $$instr[31:0]);
    
-   // Instruction decode
+   // Instruction type decode
    $is_u_instr = $instr[6:2] ==? 5'b0x101;
    
    $is_i_instr = $instr[6:2] == 5'b00000 ||
@@ -64,7 +64,7 @@
                  $instr[6:2] == 5'b01110 ||
                  $instr[6:2] == 5'b10100;
    
-   $is_s_instr = $instr[6:2] ==? 5'b00100x;
+   $is_s_instr = $instr[6:2] ==? 5'b0010x;
    
    $is_b_instr = $instr[6:2] == 5'b11000;
    
