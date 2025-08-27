@@ -47,8 +47,10 @@
    $pc[31:0] = >>1$next_pc;
    $next_pc[31:0] = $reset ? 8'd0 : $pc + 8'd4;
 
+
    // IMem
    `READONLY_MEM($pc, $$instr[31:0]);
+   
    
    // Instruction type decode
    $is_u_instr = $instr[6:2] ==? 5'b0x101;
@@ -69,6 +71,14 @@
    $is_b_instr = $instr[6:2] == 5'b11000;
    
    $is_j_instr = $instr[6:2] == 5'b11011;
+
+
+   // Decode instruction fields
+   $funct3[2:0] = $instr[14:12];
+   $rs1[4:0] = $instr[19:15];
+   $rs2[4:0] = $instr[24:20];
+   $rd[4:0] = $instr[11:7];
+   $opcode[6:0] = $instr[6:0];
    
    
    // Assert these to end simulation (before Makerchip cycle limit).
