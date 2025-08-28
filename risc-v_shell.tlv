@@ -51,7 +51,7 @@
    // IMem
    `READONLY_MEM($pc, $$instr[31:0]);
    
-   
+
    // Instruction type decode
    $is_u_instr = $instr[6:2] ==? 5'b0x101;
    
@@ -79,6 +79,16 @@
    $rs2[4:0] = $instr[24:20];
    $rd[4:0] = $instr[11:7];
    $opcode[6:0] = $instr[6:0];
+
+
+   // Instruction field validation
+   $funct3_valid = $is_r_instr || $is_s_instr || $is_i_instr || $is_b_instr;
+   $rs1_valid = $funct3_valid;
+   $rs2_valid = $is_r_instr || $is_s_instr || $is_b_instr;
+   $rd_valid = $is_u_instr || $is_j_instr;
+   $imm_valid = !$is_r_instr;
+   
+   `BOGUS_USE($rd $rd_valid $rs1 $rs1_valid $rs2 $rs2_valid $funct3 $funct3_valid $opcode);
    
    
    // Assert these to end simulation (before Makerchip cycle limit).
