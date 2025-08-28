@@ -113,6 +113,11 @@
    $is_add = $dec_bits == 11'b0_000_0110011;
 
 
+   // ALU
+   $result[31:0] = $is_addi ? $src1_value + $imm :
+                   $is_add ? $src1_value + $src2_value :
+                   32'b0;
+   
    // BOGUS USE for silencing log alerts
    `BOGUS_USE($rd $rd_valid $rs1 $rs1_valid $rs2 $rs2_valid $funct3 $funct3_valid $opcode $is_add $is_addi $is_bgeu $is_bltu $is_bge $is_blt $is_bne $is_beq $imm $imm_valid);
 
