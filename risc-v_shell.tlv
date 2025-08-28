@@ -27,6 +27,7 @@
    m4_asm(ADDI, x13, x13, 1)            // Increment loop count by 1
    m4_asm(BLT, x13, x12, 1111111111000) // If a3 is less than a2, branch to label named <loop>
    // Test result value in x14, and set x31 to reflect pass/fail.
+   m4_asm(ADDI, x0, x0, 1) // Write value to x0
    m4_asm(ADDI, x30, x14, 111111010100) // Subtract expected value of 44 to set x30 to 1 if and only iff the result is 45 (1 + 2 + ... + 9).
    m4_asm(BGE, x0, x0, 0) // Done. Jump to itself (infinite loop). (Up to 20-bit signed immediate plus implicit 0 bit (unlike JALR) provides byte address; last immediate bit should also be 0)
    m4_asm_end()
@@ -128,7 +129,7 @@
    *passed = 1'b0;
    *failed = *cyc_cnt > M4_MAX_CYC;
 
-   m4+rf(32, 32, $reset, $rd_write_valid, $rd_valid[4:0], $result[31:0], $rs1_valid, $rs1[4:0], $src1_value, $rs2_valid, $rs2[4:0], $src2_value)
+   m4+rf(32, 32, $reset, $rd_write_valid, $rd[4:0], $result[31:0], $rs1_valid, $rs1[4:0], $src1_value, $rs2_valid, $rs2[4:0], $src2_value)
    //m4+dmem(32, 32, $reset, $addr[4:0], $wr_en, $wr_data[31:0], $rd_en, $rd_data)
    m4+cpu_viz()
 \SV
