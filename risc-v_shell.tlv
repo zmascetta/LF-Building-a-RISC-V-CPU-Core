@@ -45,7 +45,9 @@
 
    // PC Logic
    $pc[31:0] = >>1$next_pc;
-   $next_pc[31:0] = $reset ? 8'd0 : $pc + 8'd4;
+   $next_pc[31:0] = $reset ? 32'h0:
+                    $taken_br ? $br_tgt_pc:
+                    $pc + 32'h4;
 
 
    // IMem
@@ -119,6 +121,23 @@
                    $is_add ? $src1_value + $src2_value :
                    32'b0;
 
+   
+   // Branch Logic
+   // Validation for branch instructions
+   $is_beq_valid = ($is_beq && ($src1_value == $src2_value));
+   $is_bne_valid = ($is_bne && ($src1_value != $src2_value));
+   $is_blt_valid = ($is_blt && (($src1_value < $src2_value) ^ ($src1_value[31] != $src2_value[31])));
+   $is_bge_valid = ($is_bge && (($src1_value >= $src2_value) ^ ($src1_value[31] != $src2_value[31])));
+   $is_bltu_valid = ($is_bltu && ($src1_value < $src2_value));
+   $is_bgeu_valid = ($is_bgeu && ($src1_value >= $src2_value));
+   
+   // Validation for taken branch path
+   $taken_br = $is_b_instr && ($is_beq_valid || $is_bne_valid || $is_blt_valid || $is_bge_valid || $is_bltu_valid || $is_bgeu_valid ) ? 1'b1:
+               1'b0;
+   
+   // Assignment of branch target PC
+   $br_tgt_pc[31:0] = $imm + $pc;
+   
    // Do not write to x0
    $rd_write_valid = $rd != 0;
 
@@ -126,7 +145,7 @@
    `BOGUS_USE($rd $rd_valid $rs1 $rs1_valid $rs2 $rs2_valid $funct3 $funct3_valid $opcode $is_add $is_addi $is_bgeu $is_bltu $is_bge $is_blt $is_bne $is_beq $imm $imm_valid);
 
    // Assert these to end simulation (before Makerchip cycle limit).
-   *passed = 1'b0;
+   m4+tb()
    *failed = *cyc_cnt > M4_MAX_CYC;
 
    m4+rf(32, 32, $reset, $rd_write_valid, $rd[4:0], $result[31:0], $rs1_valid, $rs1[4:0], $src1_value, $rs2_valid, $rs2[4:0], $src2_value)
