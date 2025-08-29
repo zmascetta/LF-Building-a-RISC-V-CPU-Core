@@ -52,7 +52,7 @@
    `READONLY_MEM($pc, $$instr[31:0]);
 
 
-   // Instruction type decode
+   // Instruction type validation
    $is_u_instr = $instr[6:2] ==? 5'b0x101;
 
    $is_i_instr = $instr[6:2] == 5'b00000 ||
@@ -101,7 +101,7 @@
    // Instruction decode
    $dec_bits[10:0] = {$instr[30],$funct3,$opcode};
 
-   // Branch instructons
+   // Branch instructon validation
    $is_beq = $dec_bits ==? 11'bx_000_1100011;
    $is_bne = $dec_bits ==? 11'bx_001_1100011;
    $is_blt = $dec_bits ==? 11'bx_100_1100011;
@@ -109,7 +109,7 @@
    $is_bltu = $dec_bits ==? 11'bx_110_1100011;
    $is_bgeu = $dec_bits ==? 11'bx_111_1100011;
 
-   // Add instructions
+   // Add instruction validation
    $is_addi = $dec_bits ==? 11'bx_000_0010011;
    $is_add = $dec_bits == 11'b0_000_0110011;
 
@@ -120,8 +120,8 @@
                    32'b0;
 
    // Do not write to x0
-   $rd_write_valid = $rd != 0; 
-   
+   $rd_write_valid = $rd != 0;
+
    // BOGUS USE for silencing log alerts
    `BOGUS_USE($rd $rd_valid $rs1 $rs1_valid $rs2 $rs2_valid $funct3 $funct3_valid $opcode $is_add $is_addi $is_bgeu $is_bltu $is_bge $is_blt $is_bne $is_beq $imm $imm_valid);
 
