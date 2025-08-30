@@ -69,11 +69,40 @@
                 $is_j_instr ? {  {12{$instr[31]}},$instr[19:12], $instr[20], $instr[30:21], 1'b0  } :
                               32'b0;  // Default
 
-
-   // Instruction decode
+   // INSTRUCTION DECODE
+   // Assign decode bits
    $dec_bits[10:0] = {$instr[30],$funct3,$opcode};
 
-   // Branch instructon validation
+   //Integer Computation
+   $is_add = $dec_bits == 11'b0_000_0110011;   // add
+   $is_addi = $dec_bits ==? 11'bx_000_0010011; // add immediate
+
+   $is_sub = $dec_bits == 11'b1_000_0110011; // subtract
+
+   $is_and = $dec_bits == 11'b0_111_0110011;   // and
+   $is_andi = $dec_bits ==? 11'bx_111_0010011;   // and immediate
+   $is_or = $dec_bits == 11'b0_110_0110011;   // or
+   $is_ori = $dec_bits ==? 11'bx_110_0010011;   // or immediate
+   $is_xor = $dec_bits == 11'b0_100_0110011;   // xor
+   $is_xori = $dec_bits ==? 11'bx_100_0010011;   // xor immediate
+
+   $is_sll = $dec_bits == 11'b0_001_0110011;   // shift left logical
+   $is_slli = $dec_bits == 11'b0_001_0010011;   // shift left logical immediate
+   $is_sra = $dec_bits == 11'b1_101_0110011;   // shift right arithmetic
+   $is_srai = $dec_bits == 11'b1_101_0010011;   // shift right arithmetic immediate
+   $is_srl = $dec_bits == 11'b0_101_0110011;   // shift right logical
+   $is_srli = $dec_bits == 11'b0_101_0010011;   // shift right logical immediate
+
+   $is_lui = $dec_bits ==? 11'bx_xxx_0110111;   // load upper immediate
+   $is_auipc = $dec_bits ==? 11'bx_xxx_0010111;   // add upper immediate PC
+
+   $is_slt = $dec_bits == 11'b0_010_0110011;   // set less than
+   $is_slti = $dec_bits ==? 11'bx_010_0010011;   // set less than immediate
+
+   $is_sltu = $dec_bits == 11'b0_011_0110011;   // set less than unsigned
+   $is_sltui = $dec_bits ==? 11'bx_011_0010011;   // set less than unsigned immediate
+
+   // Control Transfer
    $is_beq = $dec_bits ==? 11'bx_000_1100011;
    $is_bne = $dec_bits ==? 11'bx_001_1100011;
    $is_blt = $dec_bits ==? 11'bx_100_1100011;
@@ -81,9 +110,11 @@
    $is_bltu = $dec_bits ==? 11'bx_110_1100011;
    $is_bgeu = $dec_bits ==? 11'bx_111_1100011;
 
-   // Add instruction validation
-   $is_addi = $dec_bits ==? 11'bx_000_0010011;
-   $is_add = $dec_bits == 11'b0_000_0110011;
+   $is_jal = $dec_bits ==? 11'bx_xxx_1101111;   // jump and link
+   $is_jalr = $dec_bits ==? 11'bx_000_1100111;   // jump and link register
+
+   // Load and Store 
+   $is_load = $dec_bits ==? 11'bx_xxx_0000011; // catch-all for load
 
 
    // ALU
@@ -91,7 +122,7 @@
                    $is_add ? $src1_value + $src2_value :
                    32'b0;
 
-   
+
    // Branch Logic
    // Validation for branch instructions
    $is_beq_valid = ($is_beq && ($src1_value == $src2_value));
@@ -100,14 +131,14 @@
    $is_bge_valid = ($is_bge && (($src1_value >= $src2_value) ^ ($src1_value[31] != $src2_value[31])));
    $is_bltu_valid = ($is_bltu && ($src1_value < $src2_value));
    $is_bgeu_valid = ($is_bgeu && ($src1_value >= $src2_value));
-   
+
    // Validation for taken branch path
    $taken_br = $is_b_instr && ($is_beq_valid || $is_bne_valid || $is_blt_valid || $is_bge_valid || $is_bltu_valid || $is_bgeu_valid ) ? 1'b1:
                1'b0;
-   
+
    // Assignment of branch target PC
    $br_tgt_pc[31:0] = $imm + $pc;
-   
+
    // Do not write to x0
    $rd_write_valid = $rd != 0;
 
