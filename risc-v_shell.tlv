@@ -16,7 +16,8 @@
    // PC Logic
    $pc[31:0] = >>1$next_pc;
    $next_pc[31:0] = $reset ? 32'h0:
-                    $taken_br ? $br_tgt_pc:
+                    $taken_br | $is_jal ? $br_tgt_pc:
+                    $is_jalr ? $jalr_tgt_pc:
                     $pc + 32'h4;
 
 
@@ -132,7 +133,7 @@
    $result[31:0] = $is_andi ? $src1_value & $imm :
                    $is_ori ? $src1_value | $imm :
                    $is_xori ? $src1_value ^ $imm :
-                   $is_addi ? $src1_value + $imm :
+                   $is_addi | $is_load | $is_s_instr ? $src1_value + $imm :
                    $is_slli ? $src1_value << $imm[5:0] :
                    $is_srli ? $src1_value >> $imm[5:0] :
                    $is_and ? $src1_value & $src2_value :
@@ -175,18 +176,25 @@
    // Assignment of branch target PC
    $br_tgt_pc[31:0] = $imm + $pc;
 
+
+   // Jump Logic
+   $jalr_tgt_pc[31:0] = $src1_value + $imm;
+
+
    // Do not write to x0
    $rd_write_valid = $rd != 0;
 
-   // BOGUS USE for silencing log alerts
-   `BOGUS_USE($rd $rd_valid $rs1 $rs1_valid $rs2 $rs2_valid $funct3 $funct3_valid $opcode $is_add $is_addi $is_bgeu $is_bltu $is_bge $is_blt $is_bne $is_beq $imm $imm_valid);
+
+   // Data memory
+   $rf_write_value[31:0] = $is_load ? $ld_data : $result;
+
 
    // Assert these to end simulation (before Makerchip cycle limit).
    m4+tb()
    *failed = *cyc_cnt > M4_MAX_CYC;
 
-   m4+rf(32, 32, $reset, $rd_write_valid, $rd[4:0], $result[31:0], $rs1_valid, $rs1[4:0], $src1_value, $rs2_valid, $rs2[4:0], $src2_value)
-   //m4+dmem(32, 32, $reset, $addr[4:0], $wr_en, $wr_data[31:0], $rd_en, $rd_data)
+   m4+rf(32, 32, $reset, $rd_write_valid, $rd[4:0], $rf_write_value[31:0], $rs1_valid, $rs1[4:0], $src1_value, $rs2_valid, $rs2[4:0], $src2_value)
+   m4+dmem(32, 32, $reset, $result[5:2], $is_s_instr, $src2_value[31:0], $is_load, $ld_data)
    m4+cpu_viz()
 \SV
    endmodule
