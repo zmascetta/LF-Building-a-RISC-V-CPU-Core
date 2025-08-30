@@ -100,7 +100,7 @@
    $is_slti = $dec_bits ==? 11'bx_010_0010011;   // set less than immediate
 
    $is_sltu = $dec_bits == 11'b0_011_0110011;   // set less than unsigned
-   $is_sltui = $dec_bits ==? 11'bx_011_0010011;   // set less than unsigned immediate
+   $is_sltiu = $dec_bits ==? 11'bx_011_0010011;   // set less than unsigned immediate
 
    // Control Transfer
    $is_beq = $dec_bits ==? 11'bx_000_1100011;
@@ -113,13 +113,49 @@
    $is_jal = $dec_bits ==? 11'bx_xxx_1101111;   // jump and link
    $is_jalr = $dec_bits ==? 11'bx_000_1100111;   // jump and link register
 
-   // Load and Store 
-   $is_load = $dec_bits ==? 11'bx_xxx_0000011; // catch-all for load
+   // Load and Store
+   $is_load = $dec_bits ==? 11'bx_xxx_0000011;  // catch-all for load
 
+   // ALU Subexpressions
+   // SLTU and SLTI (set if less than, unsigned) results:
+   $sltu_rslt[31:0]  = {31'b0, $src1_value < $src2_value};
+   $sltiu_rslt[31:0] = {31'b0, $src1_value < $imm};
+
+   // SRA and SRAI (shift right, arithmetic) results:
+   //   sign-extended src1
+   $sext_src1[63:0] = { {32{$src1_value[31]}}, $src1_value };
+   //   64-bit sign extended results, to be truncated
+   $sra_rslt[63:0] = $sext_src1 >> $src2_value[4:0];
+   $srai_rslt[63:0] = $sext_src1 >> $imm[4:0];
 
    // ALU
-   $result[31:0] = $is_addi ? $src1_value + $imm :
+   $result[31:0] = $is_andi ? $src1_value & $imm :
+                   $is_ori ? $src1_value | $imm :
+                   $is_xori ? $src1_value ^ $imm :
+                   $is_addi ? $src1_value + $imm :
+                   $is_slli ? $src1_value << $imm[5:0] :
+                   $is_srli ? $src1_value >> $imm[5:0] :
+                   $is_and ? $src1_value & $src2_value :
+                   $is_or ? $src1_value | $src2_value :
+                   $is_xor ? $src1_value ^ $src2_value :
                    $is_add ? $src1_value + $src2_value :
+                   $is_sub ? $src1_value - $src2_value :
+                   $is_sll ? $src1_value << $src2_value[4:0] :
+                   $is_srl ? $src1_value >> $src2_value[4:0] :
+                   $is_sltu ? $sltu_rslt :
+                   $is_sltiu ? $sltiu_rslt :
+                   $is_lui ? {$imm[31:12], 12'b0} :
+                   $is_auipc ? $pc + $imm :
+                   $is_jal ? $pc + 32'd4 :
+                   $is_jalr ? $pc + 32'd4 :
+                   $is_slt ? ( ($src1_value[31] == $src2_value[31]) ?
+                                    $sltu_rslt :
+                                    {31'b0, $src1_value[31]} ) :
+                   $is_slti ? ( ($src1_value[31] == $imm[31]) ?
+                                    $sltiu_rslt :
+                                    {31'b0, $src1_value[31]} ) :
+                   $is_sra ? $sra_rslt[31:0] :
+                   $is_srai ? $srai_rslt[31:0] :
                    32'b0;
 
 
